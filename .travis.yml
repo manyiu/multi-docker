@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t manyiu/multi-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run manyiu/multi-test npm run test -- --coverage
+
+after_success:
+  - docker build -t manyiu/multi-client ./client
+  - docker build -t manyiu/multi-nginx ./nginx
+  - docker build -t manyiu/multi-server ./server
+  - docker build -t manyiu/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push manyiu/multi-client
+  - docker push manyiu/multi-nginx
+  - docker push manyiu/multi-server
+  - docker push manyiu/multi-worker
